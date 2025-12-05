@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP地址使用记录管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        /* 页面标题 */
+        .page-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* 卡片通用样式 */
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .card-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background-color: #409eff;
+            border-radius: 2px;
+        }
+
+        /* 顶部单位切换+工具区域 */
+        .header-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .unit-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #unitSelect {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            background-color: #fafafa;
+            transition: border-color 0.3s ease;
+        }
+
+        #unitSelect:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        /* 工具按钮组 */
+        .tool-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* 通用按钮样式 */
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: #409eff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+
+        .btn-success {
+            background-color: #67c23a;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background-color: #85ce61;
+        }
+
+        .btn-warning {
+            background-color: #e6a23c;
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background-color: #ebb563;
+        }
+
+        .btn-danger {
+            background-color: #f56c6c;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background-color: #f78989;
+        }
+
+        .btn-secondary {
+            background-color: #909399;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #a6a9ad;
+        }
+
+        /* 介绍编辑区域 */
+        #introText {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 14px;
+            color: #333;
+            background-color: #fafafa;
+            transition: border-color 0.3s ease;
+        }
+
+        #introText:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        /* IP记录表单区域 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            background-color: #fafafa;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        /* IP列表区域 */
+        .ip-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .ip-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+        }
+
+        .ip-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .ip-item .info {
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ip-item .info label {
+            color: #909399;
+            font-weight: 500;
+            min-width: 60px;
+        }
+
+        .ip-item .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        /* 无数据提示 */
+        .empty-tip {
+            text-align: center;
+            color: #909399;
+            padding: 30px;
+            font-size: 14px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .modal-content h4 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* 隐藏的文件输入 */
+        #importFile {
+            display: none;
+        }
+
+        /* 提示框样式 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 998;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* 加载提示 */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面标题 -->
+    <h1 class="page-title">IP地址使用记录管理系统</h1>
+
+    <!-- 单位切换+工具区域 -->
+    <div class="card header-area">
+        <div class="card-title">单位管理</div>
+        <div class="unit-controls">
+            <select id="unitSelect" class="form-control">
+                <!-- 动态加载单位列表 -->
+            </select>
+            <button id="addUnitBtn" class="btn btn-primary">新增单位</button>
+        </div>
+
+        <!-- 工具按钮组 -->
+        <div class="tool-btns">
+            <button id="backupBtn" class="btn btn-success">
+                📤 备份所有数据
+            </button>
+            <button id="importBtn" class="btn btn-warning">
+                📥 导入数据
+            </button>
+            <input type="file" id="importFile" accept=".json" />
+            <button id="exportTableBtn" class="btn btn-primary">
+                📄 导出当前IP表格
+            </button>
+        </div>
+    </div>
+
+    <!-- 介绍编辑区域 -->
+    <div class="card">
+        <div class="card-title">页面介绍</div>
+        <textarea id="introText" placeholder="请输入页面介绍内容（例如：本单位IP地址分配规则、使用说明等）..." class="form-control"></textarea>
+        <button id="saveIntroBtn" class="btn btn-success">保存介绍</button>
+    </div>
+
+    <!-- IP记录表单 -->
+    <div class="card">
+        <div class="card-title">新增IP记录</div>
+        <div class="form-group">
+            <label for="ipAddress">IP地址</label>
+            <input type="text" id="ipAddress" class="form-control" placeholder="例如：192.168.1.100">
+        </div>
+        <div class="form-group">
+            <label for="userName">使用者</label>
+            <input type="text" id="userName" class="form-control" placeholder="请输入使用者姓名/部门">
+        </div>
+        <div class="form-group">
+            <label for="remark">备注</label>
+            <input type="text" id="remark" class="form-control" placeholder="请输入备注信息（可选）">
+        </div>
+        <button id="addIpBtn" class="btn btn-primary" style="width: 100%;">添加记录</button>
+    </div>
+
+    <!-- IP列表区域 -->
+    <div class="card">
+        <div class="card-title">IP使用记录</div>
+        <ul id="ipList" class="ip-list">
+            <!-- 动态加载IP列表 -->
+        </ul>
+    </div>
+
+    <!-- 新增/编辑单位弹窗 -->
+    <div id="unitModal" class="modal">
+        <div class="modal-content">
+            <h4 id="modalTitle">新增单位</h4>
+            <input type="text" id="unitNameInput" class="form-control" placeholder="请输入单位名称">
+            <input type="hidden" id="editUnitId">
+            <div class="modal-btns">
+                <button class="btn btn-secondary cancel-btn" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary confirm-btn" onclick="saveUnit()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示框 -->
+    <div id="toast" class="toast"></div>
+    <!-- 加载提示 -->
+    <div id="loading" class="loading">处理中，请稍候...</div>
+
+    <script>
+        // 存储数据的key
+        const UNITS_KEY = 'ip_manager_units';
+        const INTRO_KEY = 'ip_manager_intro_';
+        const IP_DATA_KEY = 'ip_manager_ipdata_';
+
+        // 当前选中的单位ID
+        let currentUnitId = '';
+
+        // 初始化页面
+        window.onload = function() {
+            initUnits();
+            bindEvents();
+        };
+
+        // 初始化单位列表
+        function initUnits() {
+            let units = JSON.parse(localStorage.getItem(UNITS_KEY)) || [{
+                id: 'default',
+                name: '默认单位'
+            }];
+            
+            localStorage.setItem(UNITS_KEY, JSON.stringify(units));
+
+            const unitSelect = document.getElementById('unitSelect');
+            unitSelect.innerHTML = '';
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.id;
+                option.textContent = unit.name;
+                unitSelect.appendChild(option);
+            });
+
+            currentUnitId = units[0].id;
+            unitSelect.value = currentUnitId;
+
+            loadIntro();
+            loadIpData();
+        }
+
+        // 绑定所有事件
+        function bindEvents() {
+            // 单位切换
+            document.getElementById('unitSelect').addEventListener('change', function() {
+                currentUnitId = this.value;
+                loadIntro();
+                loadIpData();
+            });
+
+            // 新增单位
+            document.getElementById('addUnitBtn').addEventListener('click', function() {
+                openModal('新增单位');
+            });
+
+            // 保存介绍
+            document.getElementById('saveIntroBtn').addEventListener('click', saveIntro);
+
+            // 添加IP记录
+            document.getElementById('addIpBtn').addEventListener('click', addIpRecord);
+
+            // 备份数据
+            document.getElementById('backupBtn').addEventListener('click', backupAllData);
+
+            // 导入数据
+            document.getElementById('importBtn').addEventListener('click', function() {
+                document.getElementById('importFile').click();
+            });
+            document.getElementById('importFile').addEventListener('change', importData);
+
+            // 导出表格
+            document.getElementById('exportTableBtn').addEventListener('click', exportIpToCsv);
+        }
+
+        // 打开单位弹窗
+        function openModal(title, unitId = '') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('editUnitId').value = unitId;
+            
+            if (unitId) {
+                const units = JSON.parse(localStorage.getItem(UNITS_KEY)) || [];
+                const unit = units.find(u => u.id === unitId);
+                if (unit) {
+                    document.getElementById('unitNameInput').value = unit.name;
+                }
+            } else {
+                document.getElementById('unitNameInput').value = '';
+            }
+
+            document.getElementById('unitModal').style.display = 'flex';
+        }
+
+        // 关闭单位弹窗
+        function closeModal() {
+            document.getElementById('unitModal').style.display = 'none';
+            document.getElementById('unitNameInput').value = '';
+        }
+
+        // 保存单位
+        function saveUnit() {
+            const unitName = document.getElementById('unitNameInput').value.trim();
+            const editUnitId = document.getElementById('editUnitId').value;
+
+            if (!unitName) {
+                showToast('请输入单位名称');
+                return;
+            }
+
+            let units = JSON.parse(localStorage.getItem(UNITS_KEY)) || [];
+
+            if (editUnitId) {
+                const index = units.findIndex(u => u.id === editUnitId);
+                if (index !== -1) {
+                    units[index].name = unitName;
+                }
+            } else {
+                const newUnit = {
+                    id: 'unit_' + Date.now(),
+                    name: unitName
+                };
+                units.push(newUnit);
+            }
+
+            localStorage.setItem(UNITS_KEY, JSON.stringify(units));
+            closeModal();
+            initUnits();
+            showToast(editUnitId ? '单位修改成功' : '单位添加成功');
+        }
+
+        // 加载介绍
+        function loadIntro() {
+            const introKey = INTRO_KEY + currentUnitId;
+            const introText = localStorage.getItem(introKey) || '';
+            document.getElementById('introText').value = introText;
+        }
+
+        // 保存介绍
+        function saveIntro() {
+            const introKey = INTRO_KEY + currentUnitId;
+            const introText = document.getElementById('introText').value.trim();
+            localStorage.setItem(introKey, introText);
+            showToast('介绍内容保存成功');
+        }
+
+        // 加载IP数据
+        function loadIpData() {
+            const ipDataKey = IP_DATA_KEY + currentUnitId;
+            const ipData = JSON.parse(localStorage.getItem(ipDataKey)) || [];
+            const ipList = document.getElementById('ipList');
+            
+            ipList.innerHTML = '';
+
+            if (ipData.length === 0) {
+                const emptyTip = document.createElement('li');
+                emptyTip.className = 'empty-tip';
+                emptyTip.textContent = '暂无IP记录，点击上方"添加记录"创建';
+                ipList.appendChild(emptyTip);
+                return;
+            }
+
+            ipData.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'ip-item';
+                li.innerHTML = `
+                    <div class="info"><label>IP地址：</label>${item.ip}</div>
+                    <div class="info"><label>使用者：</label>${item.user}</div>
+                    <div class="info"><label>备注：</label>${item.remark || '无'}</div>
+                    <div class="actions">
+                        <button class="btn btn-warning btn-sm edit-btn" onclick="editIpRecord(${index})">编辑</button>
+                        <button class="btn btn-danger btn-sm delete-btn" onclick="deleteIpRecord(${index})">删除</button>
+                    </div>
+                `;
+                ipList.appendChild(li);
+            });
+        }
+
+        // 添加IP记录
+        function addIpRecord() {
+            const ip = document.getElementById('ipAddress').value.trim();
+            const user = document.getElementById('userName').value.trim();
+            const remark = document.getElementById('remark').value.trim();
+
+            if (!ip) {
+                showToast('请输入IP地址');
+                return;
+            }
+            if (!user) {
+                showToast('请输入使用者');
+                return;
+            }
+
+            const ipDataKey = IP_DATA_KEY + currentUnitId;
+            const ipData = JSON.parse(localStorage.getItem(ipDataKey)) || [];
+
+            ipData.push({
+                ip: ip,
+                user: user,
+                remark: remark
+            });
+
+            localStorage.setItem(ipDataKey, JSON.stringify(ipData));
+
+            document.getElementById('ipAddress').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('remark').value = '';
+
+            loadIpData();
+            showToast('IP记录添加成功');
+        }
+
+        // 编辑IP记录
+        function editIpRecord(index) {
+            const ipDataKey = IP_DATA_KEY + currentUnitId;
+            const ipData = JSON.parse(localStorage.getItem(ipDataKey)) || [];
+            const item = ipData[index];
+
+            document.getElementById('ipAddress').value = item.ip;
+            document.getElementById('userName').value = item.user;
+            document.getElementById('remark').value = item.remark || '';
+
+            const addIpBtn = document.getElementById('addIpBtn');
+            addIpBtn.textContent = '保存修改';
+            addIpBtn.onclick = function() {
+                item.ip = document.getElementById('ipAddress').value.trim();
+                item.user = document.getElementById('userName').value.trim();
+                item.remark = document.getElementById('remark').value.trim();
+
+                if (!item.ip) {
+                    showToast('请输入IP地址');
+                    return;
+                }
+                if (!item.user) {
+                    showToast('请输入使用者');
+                    return;
+                }
+
+                ipData[index] = item;
+                localStorage.setItem(ipDataKey, JSON.stringify(ipData));
+
+                addIpBtn.textContent = '添加记录';
+                addIpBtn.onclick = addIpRecord;
+                document.getElementById('ipAddress').value = '';
+                document.getElementById('userName').value = '';
+                document.getElementById('remark').value = '';
+
+                loadIpData();
+                showToast('IP记录修改成功');
+            };
+        }
+
+        // 删除IP记录
+        function deleteIpRecord(index) {
+            if (!confirm('确定要删除这条IP记录吗？')) {
+                return;
+            }
+
+            const ipDataKey = IP_DATA_KEY + currentUnitId;
+            const ipData = JSON.parse(localStorage.getItem(ipDataKey)) || [];
+
+            ipData.splice(index, 1);
+            localStorage.setItem(ipDataKey, JSON.stringify(ipData));
+
+            loadIpData();
+            showToast('IP记录删除成功');
+        }
+
+        // 备份所有数据
+        function backupAllData() {
+            showLoading();
+            // 收集所有数据
+            const backupData = {
+                units: JSON.parse(localStorage.getItem(UNITS_KEY)) || [],
+                introData: {},
+                ipData: {}
+            };
+
+            // 收集每个单位的介绍和IP数据
+            backupData.units.forEach(unit => {
+                const introKey = INTRO_KEY + unit.id;
+                const ipDataKey = IP_DATA_KEY + unit.id;
+                backupData.introData[unit.id] = localStorage.getItem(introKey) || '';
+                backupData.ipData[unit.id] = JSON.parse(localStorage.getItem(ipDataKey)) || [];
+            });
+
+            // 转换为JSON字符串并下载
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `IP地址记录备份_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            hideLoading();
+            showToast('数据备份成功，已下载备份文件');
+        }
+
+        // 导入数据
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 验证文件类型
+            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                showToast('请选择JSON格式的备份文件');
+                return;
+            }
+
+            showLoading();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    // 验证备份数据格式
+                    if (!backupData.units || !Array.isArray(backupData.units)) {
+                        throw new Error('备份文件格式错误');
+                    }
+
+                    // 确认覆盖
+                    if (!confirm('导入数据将覆盖现有所有数据，确定继续吗？')) {
+                        hideLoading();
+                        return;
+                    }
+
+                    // 清空现有数据
+                    localStorage.clear();
+
+                    // 恢复单位数据
+                    localStorage.setItem(UNITS_KEY, JSON.stringify(backupData.units));
+
+                    // 恢复介绍和IP数据
+                    for (const unitId in backupData.introData) {
+                        const introKey = INTRO_KEY + unitId;
+                        localStorage.setItem(introKey, backupData.introData[unitId]);
+                    }
+
+                    for (const unitId in backupData.ipData) {
+                        const ipDataKey = IP_DATA_KEY + unitId;
+                        localStorage.setItem(ipDataKey, JSON.stringify(backupData.ipData[unitId]));
+                    }
+
+                    // 重新初始化页面
+                    initUnits();
+                    hideLoading();
+                    showToast('数据导入成功');
+
+                    // 清空文件选择
+                    document.getElementById('importFile').value = '';
+                } catch (error) {
+                    hideLoading();
+                    showToast('导入失败：' + error.message);
+                    document.getElementById('importFile').value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 导出IP记录为CSV表格
+        function exportIpToCsv() {
+            const ipDataKey = IP_DATA_KEY + currentUnitId;
+            const ipData = JSON.parse(localStorage.getItem(ipDataKey)) || [];
+
+            if (ipData.length === 0) {
+                showToast('当前单位暂无IP记录可导出');
+                return;
+            }
+
+            showLoading();
+            // 构建CSV内容
+            let csvContent = 'IP地址,使用者,备注\n';
+            ipData.forEach(item => {
+                // 处理CSV中的特殊字符（逗号、换行）
+                const ip = item.ip.replace(/,/g, '，').replace(/\n/g, ' ');
+                const user = item.user.replace(/,/g, '，').replace(/\n/g, ' ');
+                const remark = (item.remark || '').replace(/,/g, '，').replace(/\n/g, ' ');
+                csvContent += `${ip},${user},${remark}\n`;
+            });
+
+            // 下载CSV文件
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            // 获取当前单位名称
+            const units = JSON.parse(localStorage.getItem(UNITS_KEY)) || [];
+            const currentUnit = units.find(u => u.id === currentUnitId);
+            const unitName = currentUnit ? currentUnit.name : '默认单位';
+            
+            a.href = url;
+            a.download = `${unitName}_IP记录_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            hideLoading();
+            showToast('IP记录已导出为表格文件');
+        }
+
+        // 显示提示框
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // 显示加载提示
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        // 隐藏加载提示
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
